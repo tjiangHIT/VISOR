@@ -1,6 +1,7 @@
 #!/usr/bin/python env
 
 import argparse
+import sys
 from argparse import HelpFormatter
 
 
@@ -9,7 +10,7 @@ def main():
 
 	parser = argparse.ArgumentParser(prog='VISOR', description='''VarIants SimulatOR''', epilog='''This program was developed by Davide Bolognini at the European Molecular Biology Laboratory/European Bioinformatic Institute (EMBL/EBI). Extensive documentation is available at: https://davidebolo1993.github.io/visordoc/''', formatter_class=CustomFormat) 
 
-	subparsers = parser.add_subparsers(title='modules', dest='command', metavar='HACk,SHORtS,LASeR,LIKER') #two submodules
+	subparsers = parser.add_subparsers(title='modules', dest='command', metavar='HACk,SHORtS,LASeR,XENIA')
 
 	## HACk ##
 
@@ -23,7 +24,6 @@ def main():
 	required.add_argument('-o', '--output', help='Output folder', metavar='FOLDER', required=True)
 
 	parser_hack.set_defaults(func=run_subtool)
-
 
 	## SHORtS ##
 
@@ -88,6 +88,9 @@ def main():
 	pbs.add_argument('-a', '--accuracy', help='Mean accuracy for simulated reads [0.90]', metavar='', default=0.90, type=float)
 	pbs.add_argument('-l', '--length', help='Mean length for simulated reads [8000]', metavar='', default=8000, type=int)
 	pbs.add_argument('-r', '--ratio', help='substitution:insertion:deletion ratio [30:30:40]', metavar='', default='30:30:40', type=str)
+	pbs.add_argument('--maxlength', help='Maximum length for simulated reads [25000]', metavar='', default=25000, type=int)
+	pbs.add_argument('--minlength', help='Minimum length for simulated reads [500]', metavar='', default=500, type=int)
+	pbs.add_argument('--sdlength', help='Standard deviation of the simulated read length [1000]',metavar='', default=1000, type=int)
 
 	bulk = parser_long.add_argument_group('Subclones parameters')
 
@@ -99,7 +102,8 @@ def main():
 	optional.add_argument('--threads', help='Number of cores to use for alignments [1]', metavar='', type=int, default=1)
 	optional.add_argument('--identifier', help='Identifier to label the output [sim]', metavar='', default='sim')
 	optional.add_argument('--noaddtag', help='Do not tag reads in BAM by haplotype and clone number', action='store_false')	
-	optional.add_argument('--addprefix', help='Add clone and haplotype numbers as a prefix to read names', action='store_true')	
+	optional.add_argument('--addprefix', help='Add clone and haplotype numbers as a prefix to read names', action='store_true')
+	optional.add_argument('--ccs', help='If simulating PB reads, use CCS quality profile. Read length and accuracy must be tuned by the user accordingly.', action='store_true')	
 
 	parser_long.set_defaults(func=run_subtool)
 
@@ -137,6 +141,13 @@ def main():
 	optional.add_argument('--identifier', help='Identifier to label the output [sim]', metavar='', default='sim')
 
 	parser_tenx.set_defaults(func=run_subtool)
+
+	#print help if no subcommand nor --help provided
+	
+	if len(sys.argv)==1:
+    	
+		parser.print_help(sys.stderr)
+		sys.exit(1)
 
 	args = parser.parse_args()
 	args.func(parser, args)
